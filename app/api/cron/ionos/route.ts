@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { ImapFlow } from "imapflow";
 import { simpleParser } from "mailparser";
-import { prisma } from "../../../../lib/prisma";
 
 export const runtime = "nodejs";
 
@@ -40,6 +39,9 @@ function getAuthHeader(request: Request) {
 }
 
 async function handle(request: Request) {
+  const { prisma } = (await import(process.cwd() + "/lib/prisma")) as {
+    prisma: { [key: string]: any };
+  };
   const cfg = getConfig();
   if (cfg.cronSecret) {
     const auth = getAuthHeader(request);
