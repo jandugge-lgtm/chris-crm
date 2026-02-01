@@ -14,16 +14,16 @@
     "imapflow": "^1.2.8",
     "mailparser": "^3.9.3",
     "next": "14.1.0",
+    "postcss": "^8.4.35",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "tailwindcss": "^3.4.17",
+    "autoprefixer": "^10.4.17"
   },
   "devDependencies": {
     "@types/node": "25.1.0",
-    "autoprefixer": "^10.4.17",
     "dotenv": "^16.4.5",
-    "postcss": "^8.4.35",
     "prisma": "^7.3.0",
-    "tailwindcss": "^3.4.17",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"
   }
