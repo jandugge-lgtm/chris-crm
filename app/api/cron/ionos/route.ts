@@ -1,5 +1,3 @@
-"use server";
-
 import { NextResponse } from "next/server";
 import { ImapFlow } from "imapflow";
 import { simpleParser } from "mailparser";
