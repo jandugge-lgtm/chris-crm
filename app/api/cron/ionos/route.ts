@@ -59,7 +59,7 @@ async function handle(request: Request) {
   }
 
   const column = board.columns.find(
-    (c) => c.name.toLowerCase() === cfg.columnName.toLowerCase()
+    (c: { name: string }) => c.name.toLowerCase() === cfg.columnName.toLowerCase()
   );
   if (!column) {
     return NextResponse.json(
