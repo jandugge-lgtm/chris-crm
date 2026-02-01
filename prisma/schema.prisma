@@ -1,0 +1,183 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =====================
+// Enums
+// =====================
+
+enum Priority {
+  A
+  B
+  C
+}
+
+// Alte Werte bleiben drin, damit deine bestehenden Daten/Boards nicht crashen
+enum ColumnType {
+  NORMAL
+  BLOCKED
+  DONE
+  DEFERRED
+}
+
+enum PlannedBucket {
+  NONE
+  TODAY
+  WEEK
+  NEXT
+}
+
+// =====================
+// Core Models
+// =====================
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects  Project[]
+
+  @@index([name])
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  areas       Area[]
+
+  @@index([workspaceId])
+  @@index([name])
+}
+
+model Area {
+  id        String   @id @default(cuid())
+  projectId String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  boards    Board[]
+
+  @@index([projectId])
+  @@index([projectId, name])
+}
+
+model Board {
+  id        String   @id @default(cuid())
+  areaId    String
+  name      String
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  area      Area     @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  columns   Column[]
+  tasks     Task[]
+  assignedTasks Task[] @relation("TaskAssignedBoard")
+  shareLinks BoardShareLink[]
+
+  @@index([areaId])
+  @@index([areaId, name])
+}
+
+model Column {
+  id        String     @id @default(cuid())
+  boardId   String
+  name      String
+  type      ColumnType @default(NORMAL)
+  position  Int        @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  board     Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+
+  @@index([boardId])
+  @@index([boardId, position])
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks     Task[]
+}
+
+model Task {
+  id         String   @id @default(cuid())
+  boardId    String
+  columnId   String
+  title      String
+  notes      String?
+  priority   Priority @default(B)
+  dueDate    DateTime?
+  purchasePlayer Boolean @default(false)
+  leasePlayer Boolean @default(false)
+  assignedBoardId String?
+  position   Int      @default(0)
+  assigneeId String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  assignee   User?   @relation(fields: [assigneeId], references: [id])
+  board      Board   @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  column     Column  @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  assignedBoard Board? @relation("TaskAssignedBoard", fields: [assignedBoardId], references: [id])
+
+  // Cockpit-Planung (B1) – additive Relation
+  planning   TaskPlanning?
+
+  @@index([boardId])
+  @@index([columnId])
+  @@index([assigneeId])
+  @@index([dueDate])
+  @@index([boardId, columnId, position])
+  @@index([assignedBoardId])
+}
+
+model TaskPlanning {
+  id        String        @id @default(cuid())
+  taskId    String        @unique
+  bucket    PlannedBucket @default(NONE)
+  plannedAt DateTime?
+  plannedTo DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  task      Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([bucket])
+  @@index([plannedAt])
+}
+
+model BoardShareLink {
+  id           String   @id @default(cuid())
+  boardId      String
+  token        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  board        Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  @@index([boardId])
+}

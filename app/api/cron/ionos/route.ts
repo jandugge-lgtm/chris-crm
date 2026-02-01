@@ -83,7 +83,8 @@ async function handle(request: Request) {
   const lock = await client.getMailboxLock(cfg.folder);
   try {
     const uids = await client.search({ seen: false });
-    const recent = uids.slice(-50);
+    const list = Array.isArray(uids) ? uids : [];
+    const recent = list.slice(-50);
 
     if (recent.length === 0) {
       return NextResponse.json({ ok: true, created, skipped, processed });
